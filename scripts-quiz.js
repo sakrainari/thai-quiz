@@ -7,7 +7,10 @@ const state = {
     correct: 0,
     locked: false,
     hardMode: false,
+    reviewMode: false,
 };
+
+const REVIEW_STORAGE_KEY = 'geolanguage-quiz-review-v1';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -32,6 +35,70 @@ function getMode() {
 function getCount() {
     const count = $('#count').value;
     return count === 'all' ? Infinity : Number(count);
+}
+
+function getItemKey(datasetId, modeId, item) {
+    return `${datasetId}::${modeId}::${item.prompt}::${item.answer}`;
+}
+
+function readReviewStore() {
+    try {
+        const parsed = JSON.parse(localStorage.getItem(REVIEW_STORAGE_KEY) || '{}');
+        return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+    } catch {
+        return {};
+    }
+}
+
+function writeReviewStore(store) {
+    try {
+        localStorage.setItem(REVIEW_STORAGE_KEY, JSON.stringify(store));
+    } catch {
+        // localStorage may be unavailable in private browsing or locked-down contexts.
+    }
+}
+
+function addReviewItem(item) {
+    const datasetId = state.datasetId;
+    const modeId = state.modeId;
+    const key = getItemKey(datasetId, modeId, item);
+    const store = readReviewStore();
+    const previous = store[key] || {};
+    store[key] = {
+        datasetId,
+        modeId,
+        prompt: item.prompt,
+        answer: item.answer,
+        misses: (previous.misses || 0) + 1,
+        lastMissedAt: new Date().toISOString(),
+    };
+    writeReviewStore(store);
+}
+
+function removeReviewItem(item) {
+    const key = getItemKey(state.datasetId, state.modeId, item);
+    const store = readReviewStore();
+    delete store[key];
+    writeReviewStore(store);
+}
+
+function getReviewItemsForCurrentMode() {
+    const datasetId = state.datasetId;
+    const modeId = state.modeId;
+    const store = readReviewStore();
+    const reviewKeys = new Set(Object.values(store)
+        .filter(entry => entry.datasetId === datasetId && entry.modeId === modeId)
+        .map(entry => `${entry.datasetId}::${entry.modeId}::${entry.prompt}::${entry.answer}`));
+    return getMode().buildItems().filter(item => reviewKeys.has(getItemKey(datasetId, modeId, item)));
+}
+
+function updateReviewControls() {
+    const count = getReviewItemsForCurrentMode().length;
+    $('#review-stock').textContent = `現在の復習ストック: ${count}問`;
+    $('#start-review').disabled = count === 0;
+    $('#start-review').textContent = count ? `間違えた${count}問を復習` : '間違えた問題のみ復習';
+    $('#review-result').disabled = count === 0;
+    $('#review-result').textContent = count ? `間違えた${count}問を復習する` : '間違えた問題を復習する';
 }
 
 function renderDatasetTabs() {
@@ -79,6 +146,7 @@ function renderModeCards() {
             state.modeId = mode.id;
             renderModeCards();
             renderModeGuide();
+            updateReviewControls();
         };
         modes.appendChild(label);
     });
@@ -128,15 +196,19 @@ function renderSetup() {
     renderDatasetTabs();
     renderModeCards();
     renderModeGuide();
+    updateReviewControls();
 }
 
-function startQuiz() {
-    const rawItems = getMode().buildItems();
-    const count = Math.min(getCount(), rawItems.length);
+function startQuiz(useReview = false) {
+    const optionPool = getMode().buildItems();
+    const questionItems = useReview ? getReviewItemsForCurrentMode() : optionPool;
+    if (!questionItems.length) return;
+    const count = Math.min(getCount(), questionItems.length);
     state.hardMode = $('#hard-mode').checked;
-    state.items = shuffle(rawItems).slice(0, count).map(item => ({
+    state.reviewMode = useReview;
+    state.items = shuffle(questionItems).slice(0, count).map(item => ({
         ...item,
-        options: buildOptions(item, rawItems),
+        options: buildOptions(item, optionPool),
     }));
     state.current = 0;
     state.score = 0;
@@ -248,7 +320,7 @@ function renderQuestion() {
     const item = state.items[state.current];
     state.locked = false;
 
-    $('#quiz-context').textContent = `${dataset.label} / ${mode.label}`;
+    $('#quiz-context').textContent = `${dataset.label} / ${mode.label}${state.reviewMode ? ' / 再履修' : ''}`;
     $('#qno').textContent = `${state.current + 1} / ${state.items.length}`;
     $('#score').textContent = `Score ${state.score}`;
     $('#prompt').textContent = item.prompt;
@@ -276,8 +348,14 @@ function choose(option) {
     if (isCorrect) {
         state.correct++;
         state.score += 100;
+        if (state.reviewMode) {
+            removeReviewItem(item);
+        }
+    } else {
+        addReviewItem(item);
     }
     $('#score').textContent = `Score ${state.score}`;
+    updateReviewControls();
 
     $$('.opt').forEach(button => {
         const text = button.textContent.replace(/^\d+\s*/, '');
@@ -358,6 +436,7 @@ function renderResult() {
     $('#final-score').textContent = state.score;
     $('#final-accuracy').textContent = `${accuracy}%`;
     $('#final-count').textContent = `${state.correct} / ${state.items.length}`;
+    updateReviewControls();
 }
 
 function showScreen(name) {
@@ -377,9 +456,19 @@ document.addEventListener('keydown', event => {
     }
 });
 
-$('#start').onclick = startQuiz;
+$('#start').onclick = () => startQuiz(false);
+$('#start-review').onclick = () => startQuiz(true);
 $('#next').onclick = nextQuestion;
-$('#retry').onclick = () => showScreen('setup');
-$('#back').onclick = () => showScreen('setup');
+$('#retry').onclick = () => {
+    state.reviewMode = false;
+    showScreen('setup');
+    updateReviewControls();
+};
+$('#review-result').onclick = () => startQuiz(true);
+$('#back').onclick = () => {
+    state.reviewMode = false;
+    showScreen('setup');
+    updateReviewControls();
+};
 
 renderSetup();
