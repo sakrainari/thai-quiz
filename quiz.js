@@ -9,13 +9,30 @@ const shuffle = a => a.map(v => [Math.random(), v]).sort((x, y) => x[0] - y[0]).
 const CONFIG = {
     MODES: {
         CONSONANT: 'consonant_en',
-        SYLLABLE: 'syllable_en',
+        CONSONANT_VOWEL: 'consonant_vowel',
         PROVINCE_FULL: 'full_en',
         PROVINCE_ABBR: 'abbr_en',
     },
     SHARE_URL: window.location.href,
     SHARE_HASHTAGS: 'タイ文字クイズ,GeoGuessr',
 };
+
+const VOWEL_PATTERNS = [
+    { pattern: '{c}ะ', roman: 'a', name: '短い a', position: '子音の後ろに ะ' },
+    { pattern: '{c}า', roman: 'aa', name: '長い aa', position: '子音の後ろに า' },
+    { pattern: '{c}ิ', roman: 'i', name: '短い i', position: '子音の上に ิ' },
+    { pattern: '{c}ี', roman: 'ii', name: '長い ii', position: '子音の上に ี' },
+    { pattern: '{c}ึ', roman: 'ue', name: '短い ue', position: '子音の上に ึ' },
+    { pattern: '{c}ื', roman: 'uee', name: '長い uee', position: '子音の上に ื' },
+    { pattern: '{c}ุ', roman: 'u', name: '短い u', position: '子音の下に ุ' },
+    { pattern: '{c}ู', roman: 'uu', name: '長い uu', position: '子音の下に ู' },
+    { pattern: 'เ{c}', roman: 'ee', name: '長い ee', position: '子音の前に เ' },
+    { pattern: 'แ{c}', roman: 'ae', name: '長い ae', position: '子音の前に แ' },
+    { pattern: 'โ{c}', roman: 'oo', name: '長い oo', position: '子音の前に โ' },
+    { pattern: 'ไ{c}', roman: 'ai', name: 'ai', position: '子音の前に ไ' },
+    { pattern: 'ใ{c}', roman: 'ai', name: 'ai', position: '子音の前に ใ' },
+    { pattern: '{c}ำ', roman: 'am', name: 'am', position: '子音の後ろに ำ' },
+];
 
 const STATE = {
     mode: null,
@@ -121,8 +138,8 @@ function generateQuestions(mode, count) {
         case CONFIG.MODES.CONSONANT:
             questions = generateCharacterQuestions(consonants, count);
             break;
-        case CONFIG.MODES.SYLLABLE:
-            questions = generateSyllableQuestions(provinceSyllables, count);
+        case CONFIG.MODES.CONSONANT_VOWEL:
+            questions = generateConsonantVowelQuestions(consonants, count);
             break;
         case CONFIG.MODES.PROVINCE_FULL:
             questions = generateProvinceQuestions(provinceQuizData, count, false);
@@ -146,15 +163,25 @@ function generateCharacterQuestions(data, count) {
     }));
 }
 
-function generateSyllableQuestions(data, count) {
-    return shuffle(data).slice(0, count).map(s => ({
-        question: s.thai,
-        answer: s.roman,
+function generateConsonantVowelQuestions(data, count) {
+    const combinations = data.flatMap(c => VOWEL_PATTERNS.map(v => {
+        const roman = c.roman + v.roman;
+        return {
+            question: v.pattern.replace('{c}', c.thai),
+            answer: roman,
+            consonant: c,
+            vowel: v,
+        };
+    }));
+
+    return shuffle(combinations).slice(0, count).map(item => ({
+        question: item.question,
+        answer: item.answer,
         options: shuffle([
-            s.roman,
-            ...shuffle([...new Set(data.filter(x => x.roman !== s.roman).map(x => x.roman))]).slice(0, 3)
+            item.answer,
+            ...shuffle([...new Set(combinations.filter(x => x.answer !== item.answer).map(x => x.answer))]).slice(0, 3)
         ]),
-        meta: s
+        meta: item
     }));
 }
 
@@ -221,8 +248,8 @@ function getInfoHtml(answerData, isModal = false) {
     switch (mode) {
         case CONFIG.MODES.CONSONANT:
             return renderConsonantInfo(meta, answerData, isModal);
-        case CONFIG.MODES.SYLLABLE:
-            return renderSyllableInfo(meta, answerData, isModal);
+        case CONFIG.MODES.CONSONANT_VOWEL:
+            return renderConsonantVowelInfo(meta, answerData, isModal);
         default:
             return renderProvinceInfo(meta, answerData, isModal);
     }
@@ -297,20 +324,22 @@ function renderConsonantInfo(meta, answerData, isModal) {
         </div>`;
 }
 
-function renderSyllableInfo(meta, answerData, isModal) {
+function renderConsonantVowelInfo(meta, answerData, isModal) {
     const { ok: isCorrect } = answerData;
     const resultTitle = isModal ? '詳細情報' : (isCorrect ? '正解！' : '不正解...');
     const resultColor = isModal ? 'gray' : (isCorrect ? 'teal' : 'red');
+    const { consonant, vowel } = meta;
 
     return `
         <div class="flex justify-between items-start mb-4">
-            <h2 class="text-2xl font-bold text-gray-800">音節 <span class="thai-text text-4xl text-teal-600">${meta.thai}</span> の解説</h2>
+            <h2 class="text-2xl font-bold text-gray-800">子音＋母音 <span class="thai-text text-4xl text-teal-600">${meta.question}</span> の解説</h2>
             ${!isModal ? `<span class="text-2xl font-bold text-${resultColor}-500">${resultTitle}</span>` : ''}
         </div>
         <div class="p-4 bg-gray-50 rounded-lg border text-lg space-y-3">
-            <p><strong>読み (ローマ字):</strong> <span class="font-semibold">${meta.roman}</span></p>
-            ${meta.meaning ? `<p><strong>意味:</strong> <span class="font-semibold">${meta.meaning}</span></p>` : ''}
-            ${meta.examples ? `<p><strong>使用される県名:</strong> <span class="font-semibold thai-text">${meta.examples.join(', ')}</span></p>` : ''}
+            <p><strong>読み (ローマ字):</strong> <span class="font-semibold">${meta.answer}</span></p>
+            <p><strong>子音:</strong> <span class="thai-text text-2xl font-semibold">${consonant.thai}</span> / ${consonant.name} / ${consonant.roman}</p>
+            <p><strong>母音:</strong> ${vowel.name} (${vowel.roman})</p>
+            <p><strong>書き方:</strong> ${vowel.position}</p>
         </div>`;
 }
 
@@ -442,7 +471,7 @@ function updateCountOptions() {
     let size = 0;
     switch (mode) {
         case CONFIG.MODES.CONSONANT: size = consonants.length; break;
-        case CONFIG.MODES.SYLLABLE: size = provinceSyllables.length; break;
+        case CONFIG.MODES.CONSONANT_VOWEL: size = consonants.length * VOWEL_PATTERNS.length; break;
         default: size = provinceQuizData.length; break;
     }
     const sel = $('#count');
