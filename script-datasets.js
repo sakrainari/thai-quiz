@@ -239,6 +239,79 @@ const SCRIPT_DATASETS = {
             },
         ],
     },
+    devanagari: {
+        id: 'devanagari',
+        label: 'ヒンディー語',
+        nativeLabel: 'हिन्दी',
+        description: 'インドの地名看板向けに、デーヴァナーガリー文字と州・連邦直轄領の代表地名を練習します。',
+        textClass: 'devanagari-text',
+        accent: 'orange',
+        modes: [
+            {
+                id: 'devanagari-letters',
+                label: '文字',
+                description: 'デーヴァナーガリーの基本文字を読む',
+                buildItems: () => DEVANAGARI_DATA.map(c => ({
+                    prompt: c.q,
+                    answer: c.a,
+                    type: c.type,
+                    note: c.desc,
+                    detail: [
+                        { label: '読み', value: c.a },
+                        { label: '分類', value: c.type },
+                        { label: 'メモ', value: c.desc },
+                    ],
+                })),
+            },
+            {
+                id: 'devanagari-vowels',
+                label: '子音＋母音記号',
+                description: '子音に母音記号を足した形を読む',
+                guide: {
+                    title: 'デーヴァナーガリーの子音＋母音記号',
+                    points: [
+                        '子音字には基本的に a が含まれる。記号が付くと、その母音に置き換わる。',
+                        'ि は子音の左側に出るが、読む順番は子音＋i。',
+                        '反り舌音 ट/ठ/ड/ढ と歯音 त/थ/द/ध は形と音の区別が重要。',
+                    ],
+                    examples: [
+                        { text: 'क', reading: 'ka', note: 'क k に内在母音 a' },
+                        { text: 'कि', reading: 'ki', note: 'ि は左に出るが k + i' },
+                        { text: 'को', reading: 'ko', note: 'ो は k + o' },
+                    ],
+                },
+                buildItems: () => DEVANAGARI_DATA.filter(c => c.type !== '母音').flatMap(c => DEVANAGARI_VOWEL_SIGNS.map(v => ({
+                    prompt: `${c.q}${v.sign}`,
+                    answer: `${getDevanagariStem(c.a)}${v.vowel}`,
+                    type: '子音＋母音',
+                    note: `${c.q} (${c.a}) + ${v.display}`,
+                    detail: [
+                        { label: '子音', value: `${c.q} / ${c.a} / ${c.type}` },
+                        { label: '母音記号', value: `${v.display} / ${v.vowel}` },
+                        { label: 'メモ', value: v.desc },
+                    ],
+                }))),
+            },
+            {
+                id: 'india-places',
+                label: 'インド地名',
+                description: '州・連邦直轄領の代表地名を読む',
+                buildItems: () => INDIA_PLACE_DATA.map(p => ({
+                    prompt: p.q,
+                    answer: p.a,
+                    type: p.type,
+                    note: `${p.region} / ${p.desc}`,
+                    mapQuery: `${p.region}, India`,
+                    detail: [
+                        { label: '代表地名', value: p.a },
+                        { label: '地域', value: p.region },
+                        { label: '種別', value: p.type },
+                        { label: 'メモ', value: p.desc },
+                    ],
+                })),
+            },
+        ],
+    },
 };
 
 const THAI_VOWEL_PATTERNS = [
@@ -257,3 +330,7 @@ const THAI_VOWEL_PATTERNS = [
     { pattern: 'ใ{c}', roman: 'ai', name: 'ai', position: '子音の前に ใ' },
     { pattern: '{c}ำ', roman: 'am', name: 'am', position: '子音の後ろに ำ' },
 ];
+
+function getDevanagariStem(reading) {
+    return reading.split('/')[0].trim().replace(/a$/, '');
+}

@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=Noto+Sans:wght@400;600;700&family=Noto+Sans+Bengali:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700;800&family=Noto+Sans+Thai+Looped:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=Noto+Sans:wght@400;600;700&family=Noto+Sans+Bengali:wght@400;600;700&family=Noto+Sans+Devanagari:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700;800&family=Noto+Sans+Thai+Looped:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --forest: #2D5A27;
@@ -21,6 +21,7 @@
         .thai-text { font-family: 'Noto Sans Thai Looped', sans-serif; }
         .bengali-text { font-family: 'Noto Sans Bengali', sans-serif; line-height: 1.15; }
         .cyrillic-text { font-family: 'Noto Sans', 'Noto Sans JP', sans-serif; }
+        .devanagari-text { font-family: 'Noto Sans Devanagari', 'Noto Sans JP', sans-serif; line-height: 1.15; }
         .app-card { border-radius: 1rem; background: white; box-shadow: 0 18px 45px -28px rgb(45 90 39 / 0.45); }
         .mode-card:has(input:checked), label:has(input:checked) .mode-card { border-color: var(--forest); background: #F0F7ED; }
         .prompt-panel {
@@ -185,6 +186,7 @@
     <script src="data/bengali-characters.js"></script>
     <script src="data/bengali-places.js"></script>
     <script src="data/cyrillic-russian.js"></script>
+    <script src="data/devanagari-hindi.js"></script>
     <script src="script-datasets.js"></script>
     <script src="scripts-quiz.js"></script>
 </body>
