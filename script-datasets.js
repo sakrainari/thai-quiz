@@ -134,6 +134,66 @@ const SCRIPT_DATASETS = {
             },
         ],
     },
+    cyrillic: {
+        id: 'cyrillic',
+        label: 'キリル文字（ロシア）',
+        nativeLabel: 'Кириллица',
+        description: 'ロシア語のキリル文字と、ロシア各地域の代表地名を練習します。',
+        textClass: 'cyrillic-text',
+        accent: 'sky',
+        modes: [
+            {
+                id: 'cyrillic-letters',
+                label: '文字',
+                description: 'ロシア語キリル文字の基本音を読む',
+                buildItems: () => CYRILLIC_DATA.map(c => ({
+                    prompt: c.q,
+                    answer: c.a,
+                    type: c.type,
+                    note: c.desc,
+                    detail: [
+                        { label: '読み', value: c.a },
+                        { label: '分類', value: c.type },
+                        { label: 'メモ', value: c.desc },
+                    ],
+                })),
+            },
+            {
+                id: 'cyrillic-traps',
+                label: 'ラテン似の罠',
+                description: '見た目と音がずれやすい文字を重点練習',
+                buildItems: () => CYRILLIC_DATA.filter(c => c.type.includes('罠')).map(c => ({
+                    prompt: c.q,
+                    answer: c.a,
+                    type: c.type,
+                    note: c.desc,
+                    detail: [
+                        { label: '読み', value: c.a },
+                        { label: '注意', value: 'ラテン文字の見た目に引っ張られやすい文字' },
+                        { label: 'メモ', value: c.desc },
+                    ],
+                })),
+            },
+            {
+                id: 'russian-places',
+                label: 'ロシア地名',
+                description: '各連邦構成主体から代表地名を1つずつ読む',
+                buildItems: () => RUSSIA_PLACE_DATA.map(p => ({
+                    prompt: p.q,
+                    answer: p.a,
+                    type: p.type,
+                    note: `${p.subject} / ${p.desc}`,
+                    mapQuery: `${p.subject}, Russia`,
+                    detail: [
+                        { label: '代表地名', value: p.a },
+                        { label: '地域', value: p.subject },
+                        { label: '種別', value: p.type },
+                        { label: 'メモ', value: p.desc },
+                    ],
+                })),
+            },
+        ],
+    },
 };
 
 const THAI_VOWEL_PATTERNS = [

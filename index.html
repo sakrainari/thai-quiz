@@ -7,11 +7,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=Noto+Sans+Bengali:wght@400;700&family=Noto+Sans+Thai+Looped:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=Noto+Sans:wght@400;700&family=Noto+Sans+Bengali:wght@400;700&family=Noto+Sans+Thai+Looped:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'M PLUS Rounded 1c', sans-serif; background: #f8fafc; color: #0f172a; }
         .thai-text { font-family: 'Noto Sans Thai Looped', sans-serif; }
         .bengali-text { font-family: 'Noto Sans Bengali', sans-serif; }
+        .cyrillic-text { font-family: 'Noto Sans', 'M PLUS Rounded 1c', sans-serif; }
         .mode-card:has(input:checked), label:has(input:checked) .mode-card { border-color: #0f172a; background: #f1f5f9; }
         .opt.correct { border-color: #10b981; background: #d1fae5; color: #064e3b; }
         .opt.wrong { border-color: #ef4444; background: #fee2e2; color: #991b1b; }
@@ -113,6 +114,7 @@
     <script src="data-abbreviations.js"></script>
     <script src="data/bengali-characters.js"></script>
     <script src="data/bengali-places.js"></script>
+    <script src="data/cyrillic-russian.js"></script>
     <script src="script-datasets.js"></script>
     <script src="scripts-quiz.js"></script>
 </body>
