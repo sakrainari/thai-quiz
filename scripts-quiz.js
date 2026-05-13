@@ -109,6 +109,13 @@ function renderModeGuide() {
                 </div>
             `).join('')}
         </div>
+        ${guide.sources ? `
+            <div class="mt-3 flex flex-wrap gap-2">
+                ${guide.sources.map(source => `
+                    <a href="${source.url}" target="_blank" rel="noopener noreferrer" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-500 hover:border-slate-400 hover:text-slate-800">${source.label}</a>
+                `).join('')}
+            </div>
+        ` : ''}
     `;
 }
 
@@ -290,10 +297,18 @@ function renderFeedback(item, isCorrect, option) {
     $('#answer-line').textContent = isCorrect ? `${item.answer} / ${item.note}` : `正解: ${item.answer} / 回答: ${option}`;
     const detail = $('#detail-list');
     detail.innerHTML = '';
-    item.detail.forEach(row => {
+    const detailRows = [...item.detail];
+    if (item.abbr && item.abbrThai) {
+        detailRows.splice(2, 0, {
+            label: '略称の取り方',
+            value: highlightThaiAbbreviation(item.abbrThai, item.abbr),
+            html: true,
+        });
+    }
+    detailRows.forEach(row => {
         const div = document.createElement('div');
         div.className = 'rounded-lg bg-slate-50 p-3';
-        div.innerHTML = `<div class="text-xs font-bold uppercase tracking-wide text-slate-400">${row.label}</div><div class="mt-1 text-sm font-semibold text-slate-700">${row.value}</div>`;
+        div.innerHTML = `<div class="text-xs font-bold uppercase tracking-wide text-slate-400">${row.label}</div><div class="mt-1 text-sm font-semibold text-slate-700">${row.html ? row.value : escapeHtml(row.value)}</div>`;
         detail.appendChild(div);
     });
 
@@ -305,6 +320,27 @@ function renderFeedback(item, isCorrect, option) {
         mapLink.removeAttribute('href');
         mapLink.style.display = 'none';
     }
+}
+
+function highlightThaiAbbreviation(thaiName, abbreviation) {
+    const targets = [...abbreviation];
+    let targetIndex = 0;
+    return [...thaiName].map(char => {
+        if (char === targets[targetIndex]) {
+            targetIndex++;
+            return `<span class="rounded bg-orange-100 px-0.5 font-extrabold text-orange-700">${escapeHtml(char)}</span>`;
+        }
+        return escapeHtml(char);
+    }).join('');
+}
+
+function escapeHtml(value) {
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 }
 
 function nextQuestion() {

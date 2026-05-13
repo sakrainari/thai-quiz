@@ -73,11 +73,30 @@ const SCRIPT_DATASETS = {
                 id: 'thai-abbr',
                 label: '県名略語',
                 description: 'タイの県名略語から県名を当てる',
+                guide: {
+                    title: 'タイ県名略称の出どころ',
+                    points: [
+                        'タイ語の県名略称（อักษรย่อจังหวัด / ตัวย่อจังหวัด）として使われる2-3字の省略形を使う。',
+                        '車両登録・住所表記・県名一覧などで見かける略称の読み取り練習用。',
+                        'バンコクは資料によって กท と กทม があるが、このアプリでは専用版と同じ กทม を採用する。',
+                    ],
+                    examples: [
+                        { text: 'กทม', reading: 'Bangkok', note: 'กรุงเทพมหานคร' },
+                        { text: 'ชม', reading: 'Chiang Mai', note: 'เชียงใหม่' },
+                        { text: 'สข', reading: 'Songkhla', note: 'สงขลา' },
+                    ],
+                    sources: [
+                        { label: 'JANGWAT: ตัวย่อจังหวัด ของประเทศไทย', url: 'https://jangwat.com/knowledge/318/' },
+                        { label: 'WordyGuru: ชื่อย่อจังหวัดในประเทศไทย', url: 'https://www.wordyguru.com/article/thai-province-name' },
+                    ],
+                },
                 buildItems: () => provinceQuizData.map(p => ({
                     prompt: p.abbr,
                     answer: p.english,
                     type: '県名略語',
                     note: `${p.thai} / ${p.katakana}`,
+                    abbr: p.abbr,
+                    abbrThai: p.thai,
                     mapQuery: `${p.english} Province, Thailand`,
                     detail: [
                         { label: '正式表記', value: p.thai },
