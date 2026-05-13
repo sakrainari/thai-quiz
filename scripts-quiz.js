@@ -42,8 +42,8 @@ function renderDatasetTabs() {
         const button = document.createElement('button');
         button.type = 'button';
         button.className = dataset.id === state.datasetId
-            ? 'px-4 py-3 rounded-lg bg-slate-900 text-white font-bold text-left'
-            : 'px-4 py-3 rounded-lg bg-white border border-slate-200 text-slate-700 font-bold text-left hover:border-slate-400';
+            ? 'px-4 py-3 rounded-lg bg-[#2D5A27] text-white font-bold text-left shadow-sm'
+            : 'px-4 py-3 rounded-lg bg-white border border-[#DDE8DA] text-[#24491f] font-bold text-left transition hover:border-[#2D5A27] hover:bg-[#F0F7ED]';
         button.innerHTML = `<span class="${dataset.textClass} text-xl mr-2">${dataset.nativeLabel}</span>${dataset.label}`;
         button.onclick = () => {
             state.datasetId = dataset.id;
@@ -65,13 +65,13 @@ function renderModeCards() {
         label.className = 'block cursor-pointer';
         label.innerHTML = `
             <input type="radio" name="mode" value="${mode.id}" class="hidden" ${mode.id === state.modeId ? 'checked' : ''}>
-            <div class="mode-card h-full rounded-lg border-2 border-slate-200 bg-white p-4 transition hover:border-slate-400">
+            <div class="mode-card h-full rounded-xl border-2 border-[#DDE8DA] bg-white p-4 transition hover:border-[#2D5A27] hover:shadow-md">
                 <div class="flex items-start justify-between gap-3">
                     <div>
-                        <div class="text-lg font-bold text-slate-900">${mode.label}</div>
-                        <div class="mt-1 text-sm text-slate-500">${mode.description}</div>
+                        <div class="text-lg font-bold text-[#102019]">${mode.label}</div>
+                        <div class="mt-1 text-sm text-[#5E7460]">${mode.description}</div>
                     </div>
-                    <div class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-500">${total}</div>
+                    <div class="rounded-full bg-[#F0F7ED] px-3 py-1 text-xs font-bold text-[#2D5A27]">${total}</div>
                 </div>
             </div>
         `;
@@ -96,23 +96,23 @@ function renderModeGuide() {
 
     guideBox.style.display = 'block';
     guideBox.innerHTML = `
-        <div class="text-sm font-extrabold text-slate-900">${guide.title}</div>
-        <ul class="mt-2 grid list-disc gap-1 pl-5 text-sm font-semibold leading-6 text-slate-600">
+        <div class="text-sm font-extrabold text-[#102019]">${guide.title}</div>
+        <ul class="mt-2 grid list-disc gap-1 pl-5 text-sm font-semibold leading-6 text-[#4D6551]">
             ${guide.points.map(point => `<li>${point}</li>`).join('')}
         </ul>
         <div class="mt-3 grid gap-2 md:grid-cols-3">
             ${guide.examples.map(example => `
-                <div class="rounded-lg bg-white p-3 ring-1 ring-slate-200">
-                    <div class="${dataset.textClass} text-2xl font-extrabold text-slate-950">${example.text}</div>
-                    <div class="mt-1 text-sm font-bold text-slate-700">${example.reading}</div>
-                    <div class="mt-1 text-xs font-semibold text-slate-400">${example.note}</div>
+                <div class="rounded-lg bg-white p-3 ring-1 ring-[#DDE8DA]">
+                    <div class="${dataset.textClass} text-2xl font-extrabold text-[#102019]">${example.text}</div>
+                    <div class="mt-1 text-sm font-bold text-[#24491f]">${example.reading}</div>
+                    <div class="mt-1 text-xs font-semibold text-[#5E7460]">${example.note}</div>
                 </div>
             `).join('')}
         </div>
         ${guide.sources ? `
             <div class="mt-3 flex flex-wrap gap-2">
                 ${guide.sources.map(source => `
-                    <a href="${source.url}" target="_blank" rel="noopener noreferrer" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-500 hover:border-slate-400 hover:text-slate-800">${source.label}</a>
+                    <a href="${source.url}" target="_blank" rel="noopener noreferrer" class="rounded-lg border border-[#DDE8DA] bg-white px-3 py-2 text-xs font-bold text-[#1A73E8] transition hover:border-[#1A73E8]">${source.label}</a>
                 `).join('')}
             </div>
         ` : ''}
@@ -123,7 +123,7 @@ function renderSetup() {
     const dataset = getDataset();
     $('#dataset-title').textContent = dataset.label;
     $('#dataset-native').textContent = dataset.nativeLabel;
-    $('#dataset-native').className = `${dataset.textClass} text-4xl font-bold text-slate-900`;
+    $('#dataset-native').className = `${dataset.textClass} text-4xl font-bold text-[#102019]`;
     $('#dataset-description').textContent = dataset.description;
     renderDatasetTabs();
     renderModeCards();
@@ -252,7 +252,7 @@ function renderQuestion() {
     $('#qno').textContent = `${state.current + 1} / ${state.items.length}`;
     $('#score').textContent = `Score ${state.score}`;
     $('#prompt').textContent = item.prompt;
-    $('#prompt').className = `${dataset.textClass} text-center font-bold text-slate-900 ${mode.id.includes('places') || mode.id.includes('provinces') ? 'text-5xl md:text-7xl' : 'text-7xl md:text-9xl'}`;
+    $('#prompt').className = `${dataset.textClass} text-center font-bold text-[#102019] drop-shadow-sm ${mode.id.includes('places') || mode.id.includes('provinces') ? 'text-5xl md:text-7xl' : 'text-7xl md:text-9xl'}`;
     $('#feedback').style.display = 'none';
 
     const options = $('#options');
@@ -260,8 +260,8 @@ function renderQuestion() {
     item.options.forEach((option, index) => {
         const button = document.createElement('button');
         button.type = 'button';
-        button.className = 'opt rounded-lg border-2 border-slate-200 bg-white p-4 text-left text-lg font-bold text-slate-800 transition hover:border-slate-500 hover:bg-slate-50';
-        button.innerHTML = `<span class="mr-3 text-sm text-slate-400">${index + 1}</span>${option}`;
+        button.className = 'opt rounded-xl border-2 border-[#DDE8DA] bg-white p-4 text-left text-lg font-bold text-[#102019] transition duration-150 hover:scale-[1.02] hover:border-[#2D5A27] hover:bg-[#F7FAF7] active:scale-[0.98]';
+        button.innerHTML = `<span class="mr-3 text-sm text-[#7C927E]">${index + 1}</span>${option}`;
         button.onclick = () => choose(option);
         options.appendChild(button);
     });
@@ -293,7 +293,7 @@ function renderFeedback(item, isCorrect, option) {
     const feedback = $('#feedback');
     feedback.style.display = 'block';
     $('#result-label').textContent = isCorrect ? '正解' : '不正解';
-    $('#result-label').className = isCorrect ? 'text-2xl font-bold text-emerald-600' : 'text-2xl font-bold text-red-600';
+    $('#result-label').className = isCorrect ? 'text-2xl font-bold text-[#059669]' : 'text-2xl font-bold text-[#DC2626]';
     $('#answer-line').textContent = isCorrect ? `${item.answer} / ${item.note}` : `正解: ${item.answer} / 回答: ${option}`;
     const detail = $('#detail-list');
     detail.innerHTML = '';
@@ -307,8 +307,8 @@ function renderFeedback(item, isCorrect, option) {
     }
     detailRows.forEach(row => {
         const div = document.createElement('div');
-        div.className = 'rounded-lg bg-slate-50 p-3';
-        div.innerHTML = `<div class="text-xs font-bold uppercase tracking-wide text-slate-400">${row.label}</div><div class="mt-1 text-sm font-semibold text-slate-700">${row.html ? row.value : escapeHtml(row.value)}</div>`;
+        div.className = 'rounded-lg bg-[#F7FAF7] p-3';
+        div.innerHTML = `<div class="text-xs font-bold uppercase tracking-wide text-[#7C927E]">${row.label}</div><div class="mt-1 text-sm font-semibold text-[#24491f]">${row.html ? row.value : escapeHtml(row.value)}</div>`;
         detail.appendChild(div);
     });
 
