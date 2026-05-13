@@ -6,6 +6,7 @@ const state = {
     score: 0,
     correct: 0,
     locked: false,
+    hardMode: false,
 };
 
 const $ = selector => document.querySelector(selector);
@@ -95,6 +96,7 @@ function renderSetup() {
 function startQuiz() {
     const rawItems = getMode().buildItems();
     const count = Math.min(getCount(), rawItems.length);
+    state.hardMode = $('#hard-mode').checked;
     state.items = shuffle(rawItems).slice(0, count).map(item => ({
         ...item,
         options: buildOptions(item, rawItems),
@@ -108,6 +110,10 @@ function startQuiz() {
 }
 
 function buildOptions(item, pool) {
+    if (state.hardMode) {
+        return buildHardOptions(item, pool);
+    }
+
     const used = new Set([item.answer]);
     const distractors = [];
     for (const candidate of shuffle(pool)) {
@@ -118,6 +124,85 @@ function buildOptions(item, pool) {
         if (distractors.length === 3) break;
     }
     return shuffle([item.answer, ...distractors]);
+}
+
+function buildHardOptions(item, pool) {
+    const used = new Set([item.answer]);
+    const ranked = shuffle(pool)
+        .filter(candidate => candidate.answer !== item.answer)
+        .map(candidate => ({
+            answer: candidate.answer,
+            score: getOptionSimilarity(item, candidate),
+        }))
+        .sort((a, b) => b.score - a.score);
+    const distractors = [];
+
+    for (const candidate of ranked) {
+        if (!used.has(candidate.answer)) {
+            used.add(candidate.answer);
+            distractors.push(candidate.answer);
+        }
+        if (distractors.length === 3) break;
+    }
+
+    if (distractors.length < 3) {
+        for (const candidate of shuffle(pool)) {
+            if (!used.has(candidate.answer)) {
+                used.add(candidate.answer);
+                distractors.push(candidate.answer);
+            }
+            if (distractors.length === 3) break;
+        }
+    }
+
+    return shuffle([item.answer, ...distractors]);
+}
+
+function getOptionSimilarity(item, candidate) {
+    const answer = normalizeAnswer(item.answer);
+    const other = normalizeAnswer(candidate.answer);
+    if (!answer || !other) return 0;
+
+    let score = 0;
+    if (answer[0] === other[0]) score += 32;
+    if (answer.at(-1) === other.at(-1)) score += 16;
+    if (answer.slice(0, 2) === other.slice(0, 2)) score += 18;
+    if (answer.slice(-3) === other.slice(-3)) score += 34;
+    else if (answer.slice(-2) === other.slice(-2)) score += 20;
+    if (item.type && item.type === candidate.type) score += 8;
+
+    const distance = levenshteinDistance(answer, other);
+    score += Math.max(0, 30 - distance * 4);
+    score += Math.max(0, 12 - Math.abs(answer.length - other.length) * 2);
+    return score;
+}
+
+function normalizeAnswer(value) {
+    return String(value)
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]/g, '');
+}
+
+function levenshteinDistance(a, b) {
+    const previous = Array.from({ length: b.length + 1 }, (_, index) => index);
+    const current = Array(b.length + 1).fill(0);
+
+    for (let i = 1; i <= a.length; i++) {
+        current[0] = i;
+        for (let j = 1; j <= b.length; j++) {
+            const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+            current[j] = Math.min(
+                current[j - 1] + 1,
+                previous[j] + 1,
+                previous[j - 1] + cost
+            );
+        }
+        previous.splice(0, previous.length, ...current);
+    }
+
+    return previous[b.length];
 }
 
 function renderQuestion() {
